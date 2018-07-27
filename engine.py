@@ -79,12 +79,18 @@ class HoudiniEngine(sgtk.platform.Engine):
         if not self._ui_enabled:
             return
 
+        tk_houdini = self.import_module("tk_houdini")
+        bootstrap = tk_houdini.bootstrap
+
+        # Initialize the panels_file
+        xml_tmp_dir = os.environ[bootstrap.g_temp_env]
+        self._panels_file = os.path.join(xml_tmp_dir, "sg_panels.pypanel")
+
         if hou.applicationVersion()[0] >= 15:
             # In houdini 15+, we can use the dynamic menus and shelf api to
             # properly handle cases where a file is loaded outside of a SG
             # context. Make sure the timer that looks for current file changes
             # is running.
-            tk_houdini = self.import_module("tk_houdini")
             if self.get_setting("automatic_context_switch", True):
                 tk_houdini.ensure_file_change_timer_running()
 
@@ -181,8 +187,6 @@ class HoudiniEngine(sgtk.platform.Engine):
                     tk_houdini.get_wrapped_panel_widget
     
                 if panel_commands:
-                    self._panels_file = os.path.join(xml_tmp_dir,
-                        "sg_panels.pypanel")
                     panels = tk_houdini.AppCommandsPanelHandler(self, commands,
                         panel_commands)
                     panels.create_panels(self._panels_file)
@@ -746,7 +750,7 @@ class HoudiniEngine(sgtk.platform.Engine):
         # our dialog, those styling changes we've applied either as part
         # of the app's style.qss, or tk-houdini's, everything sticks the
         # way it should.
-        if hou.applicationVersion() >= (16, 0, 0):
+        if hou.applicationVersion() >= (16, 0, 0) and dialog.parent():
             dialog.parent().setStyleSheet(dialog.parent().styleSheet())
 
         # finally launch it, modal state
@@ -782,7 +786,7 @@ class HoudiniEngine(sgtk.platform.Engine):
         # our dialog, those styling changes we've applied either as part
         # of the app's style.qss, or tk-houdini's, everything sticks the
         # way it should.
-        if hou.applicationVersion() >= (16, 0, 0):
+        if hou.applicationVersion() >= (16, 0, 0) and dialog.parent():
             dialog.parent().setStyleSheet(dialog.parent().styleSheet())
         
         # lastly, return the instantiated widget
